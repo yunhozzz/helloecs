@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using DefaultNamespace;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -35,25 +36,28 @@ public readonly partial struct EnemySpawnerAspect : IAspect
 {
     public readonly Entity Entity;
 
-    private readonly RefRW<LocalTransform> _transform;
+    private readonly RefRO<LocalTransform> _transform;
     private readonly RefRW<EnemySpawnerComponent> _spawner;
     
-    public void UpdateSpawn(float deltaTime, SystemState state)
+    public void UpdateSpawn(float deltaTime, SystemState state, BoardData board)
     {
         _spawner.ValueRW.Elapsed += deltaTime;
         if (_spawner.ValueRW.Elapsed >= _spawner.ValueRW.Interval)
         {
             _spawner.ValueRW.Elapsed = 0;
             var spawned = state.EntityManager.Instantiate(_spawner.ValueRW.Prefab);
+            var tr = _transform.ValueRO;
+            var spawnPos = tr.Position;
+            spawnPos.x = UnityEngine.Random.Range(board.Left, board.Right);
             state.EntityManager.SetComponentData(spawned, new MovingTag()
             {
                 Value = true,
             });
             state.EntityManager.SetComponentData(spawned, new LocalTransform()
             {
-                Position = _transform.ValueRW.Position,
-                Rotation = _transform.ValueRW.Rotation,
-                Scale = _transform.ValueRW.Scale,
+                Position = spawnPos,
+                Rotation = tr.Rotation,
+                Scale = tr.Scale,
             });
         }
     }
@@ -64,9 +68,10 @@ public partial struct EnemySpawnerSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {   
         var deltaTime = SystemAPI.Time.DeltaTime;
+        var board = SystemAPI.GetSingleton<BoardData>();
         foreach (var spawner in SystemAPI.Query<EnemySpawnerAspect>())
         {
-            spawner.UpdateSpawn(deltaTime, state);
+            spawner.UpdateSpawn(deltaTime, state, board);
         }
     }
 }

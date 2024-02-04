@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Burst;
+using DefaultNamespace;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -20,8 +21,15 @@ public class HeroBaker : Baker<Hero>
     {
         var entity = GetEntity(TransformUsageFlags.Dynamic);
         AddComponent<HeroTag>(entity);
-        AddComponent(entity, new HeroHealth { Value = authoring.Health, Max = authoring.Health });
+        AddComponent(entity, new Health
+        {
+            IsHero = true,
+            Value = authoring.Health,
+            Max = authoring.Health
+        });
         AddComponent(entity, new HeroSpeed { Value = authoring.Speed });
+        AddComponent(entity, new HeroInput { MoveX = 0 });
+        AddComponent(entity, new HeroAbility { Speed = 10 });
         AddComponent(entity, new HeroShoot
         {
             Interval = authoring.ShootInterval,
@@ -31,9 +39,22 @@ public class HeroBaker : Baker<Hero>
     }
 }
 
+
+public struct Health : IComponentData
+{
+    public bool IsHero;
+    public float Value;
+    public float Max;
+}
+
 public struct HeroTag : IComponentData {}
-public struct HeroHealth : IComponentData { public float Value; public float Max; }
 public struct HeroSpeed : IComponentData { public float Value; }
+public struct HeroInput : IComponentData { public float MoveX; }
+
+public struct HeroAbility : IComponentData
+{
+    public float Speed;
+}
 
 public struct HeroShoot : IComponentData
 {
@@ -42,25 +63,15 @@ public struct HeroShoot : IComponentData
     public Entity Bullet;
 }
 
-
 public readonly partial struct HeroAspect : IAspect
 {
     public readonly Entity Entity;
 
+    private readonly RefRO<HeroInput> _input;
+    private readonly RefRO<HeroAbility> _ability;
     private readonly RefRW<LocalTransform> _transform;
-    private readonly RefRW<HeroHealth> _health;
     private readonly RefRW<HeroShoot> _shoot;
-    private readonly DynamicBuffer<DamageBufferElement> _damageBuffer;
     
-    
-    public void ApplyDamages()
-    {
-        foreach (var brainDamageBufferElement in _damageBuffer)
-        {
-            _health.ValueRW.Value -= brainDamageBufferElement.Value;
-        }
-        _damageBuffer.Clear();
-    }
     
     public void SpawnBullet(float deltaTime, SystemState state)
     {
@@ -70,11 +81,12 @@ public readonly partial struct HeroAspect : IAspect
 
         _shoot.ValueRW.Elpased = 0;
         var bullet = state.EntityManager.Instantiate(_shoot.ValueRO.Bullet);
+        var bulletTr = state.EntityManager.GetComponentData<LocalTransform>(bullet); 
         state.EntityManager.SetComponentData(bullet, new LocalTransform()
         {
             Position = _transform.ValueRW.Position,
             Rotation = _transform.ValueRW.Rotation,
-            Scale = _transform.ValueRW.Scale,
+            Scale = bulletTr.Scale,
         });
         state.EntityManager.SetComponentData(bullet, new MovingTag()
         {
@@ -83,24 +95,32 @@ public readonly partial struct HeroAspect : IAspect
         state.EntityManager.SetComponentData(bullet, new BulletComponent()
         {
             Speed = 10f,
-            Damage = 10f,
+            Damage = 20f,
             ExplosionRadius = 0f,
         });
     }
+
+    public void Move(float deltaTime, BoardData board)
+    {
+        var pos = _transform.ValueRW.Position;
+        pos.x += _input.ValueRO.MoveX * deltaTime * _ability.ValueRO.Speed;
+        pos.x = math.clamp(pos.x, board.Left, board.Right);
+            
+        _transform.ValueRW.Position = pos;
+    }
 }
 
-[BurstCompile]
-[UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
-[UpdateAfter(typeof(EndSimulationEntityCommandBufferSystem))]
-public partial struct HeroSystem : ISystem
+[UpdateBefore(typeof(TransformSystemGroup))]
+public partial struct HeroMoveSystem : ISystem
 {
     public void OnUpdate(ref SystemState state)
     {
+        var board = SystemAPI.GetSingleton<BoardData>();
         var deltaTime = SystemAPI.Time.DeltaTime;
         foreach (var hero in SystemAPI.Query<HeroAspect>())
         {
-            hero.ApplyDamages();
             hero.SpawnBullet(deltaTime, state);
+            hero.Move(deltaTime, board);
         }
     }
 }

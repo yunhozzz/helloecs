@@ -1,3 +1,4 @@
+using DefaultNamespace;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -86,7 +87,9 @@ public partial struct BulletSystem : ISystem
 	public void OnUpdate(ref SystemState state)
 	{
 		var deltaTime = SystemAPI.Time.DeltaTime;
+		var boardEntity = SystemAPI.GetSingletonEntity<BoardData>();
 		var heroEntity = SystemAPI.GetSingletonEntity<HeroTag>();
+		var board = SystemAPI.GetComponentRO<BoardData>(boardEntity);
 		var physics = SystemAPI.GetSingleton<PhysicsWorldSingleton>();
 		var ecbSingleton = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
 
@@ -96,6 +99,7 @@ public partial struct BulletSystem : ISystem
 			DeltaTime = deltaTime,
 			MoveDir = new Vector3(0, 0, 1),
 			heroEntity = heroEntity,
+			board = board.ValueRO,
 			physics = physics,
 			ECBDestroy = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
 			ECBDamage = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
@@ -114,6 +118,7 @@ public partial struct BulletMoveJob : IJobEntity
 	public PhysicsWorldSingleton physics;
 	public EntityCommandBuffer.ParallelWriter ECBDestroy;
 	public EntityCommandBuffer.ParallelWriter ECBDamage;
+	public BoardData board;
 
 	[BurstCompile]
 	private void Execute(BulletAspect bullet, [EntityIndexInQuery] int sortKey)
@@ -122,7 +127,12 @@ public partial struct BulletMoveJob : IJobEntity
 			return;
 
 		bullet.Move(DeltaTime, MoveDir, out var startPos, out var endPos);
-
+		if (endPos.z >= board.FarLine)
+		{
+			ECBDestroy.DestroyEntity(sortKey, bullet.Entity);
+			return;
+		}
+		
 		var cast = new RaycastInput()
 		{
 			Start = startPos,
@@ -139,8 +149,8 @@ public partial struct BulletMoveJob : IJobEntity
 			}
 			else
 			{
-				var curBrainDamage = new DamageBufferElement { Value = bullet.GetDamage() };
-				ECBDamage.AppendToBuffer(sortKey, heroEntity, curBrainDamage);
+				var damage = new DamageBufferElement { Value = bullet.GetDamage() };
+				ECBDamage.AppendToBuffer(sortKey, hit.Entity, damage);
 			}
 		}
             

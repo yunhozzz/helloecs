@@ -20,14 +20,9 @@ public class EnemyBuilder : Baker<Enemy>
         AddComponent<MovingTag>(entity);
         AddComponent(entity, new EnemyAttack { Value = authoring.attack });
         AddComponent(entity, new EnemySpeed { Value = authoring.speed });
-        AddComponent(entity, new EnemyHealth { Value = authoring.health, Max = authoring.health });
+        AddComponent(entity, new Health { Value = authoring.health, Max = authoring.health });
+        AddBuffer<DamageBufferElement>(entity);
     }
-}
-
-public struct EnemyHealth : IComponentData
-{
-    public float Value { get; set; }
-    public float Max { get; set; }
 }
 
 public struct EnemySpeed : IComponentData
@@ -80,8 +75,8 @@ public partial struct EnemyMoveSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         state.RequireForUpdate<HeroTag>();
+        state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         state.RequireForUpdate<EnemyTag>();
     }
     
@@ -123,8 +118,11 @@ public partial struct EnemyMoveJob : IJobEntity
         {
             ECBDestroy.DestroyEntity(sortKey, enemy.Entity);
             
-            var curBrainDamage = new DamageBufferElement { Value = enemy.GetDamage() };
-            ECBDamage.AppendToBuffer(sortKey, heroEntity, curBrainDamage);
+            var damage = new DamageBufferElement
+            {
+                Value = enemy.GetDamage()
+            };
+            ECBDamage.AppendToBuffer(sortKey, heroEntity, damage);
         }
             
     }

@@ -99,3 +99,4 @@ MonoBehaviour:
   Speed: 10
   Damage: 10
   ExplosionRadius: 0
+  HitPrefab: {fileID: 100000, guid: d321a98408cfc4e0299808f65181aab4, type: 3}

@@ -1,6 +1,7 @@
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.VFX;
 
 public class HeroUI : MonoBehaviour
 {

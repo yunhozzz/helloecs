@@ -13,7 +13,7 @@ public class Bullet : MonoBehaviour
 	public float Speed = 10f;
 	public float Damage = 10f;
 	public float ExplosionRadius = 0f;
-	
+	public GameObject HitPrefab;
 }
 
 public class BulletBaker : Baker<Bullet>
@@ -139,10 +139,9 @@ public partial struct BulletMoveJob : IJobEntity
 			End = endPos,
 			Filter = CollisionFilter.Default,
 		};
+
 		if (physics.CastRay(cast, out var hit))
 		{
-			ECBDestroy.DestroyEntity(sortKey, bullet.Entity);
-
 			if (bullet.HasExplosion())
 			{
 				
@@ -152,6 +151,8 @@ public partial struct BulletMoveJob : IJobEntity
 				var damage = new DamageBufferElement { Value = bullet.GetDamage() };
 				ECBDamage.AppendToBuffer(sortKey, hit.Entity, damage);
 			}
+
+			ECBDestroy.DestroyEntity(sortKey, bullet.Entity);
 		}
             
 	}

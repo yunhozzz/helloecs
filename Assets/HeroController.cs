@@ -5,6 +5,7 @@ namespace DefaultNamespace
 {
 	public class HeroController : MonoBehaviour
 	{
+		public GameObject testEffectPrefab;
 		public void Update()
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
@@ -17,6 +18,12 @@ namespace DefaultNamespace
 			else
 				heroInput.MoveX = 0;
 			entityManager.SetComponentData(hero, heroInput);
+
+			if (Input.GetKeyDown(KeyCode.Space))
+			{
+				var hit = Instantiate(testEffectPrefab);
+				entityManager.AddComponentObject(hero, hit);
+			}
 		}
 	}
 }

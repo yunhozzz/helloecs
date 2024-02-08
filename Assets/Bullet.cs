@@ -6,6 +6,7 @@ using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Transforms;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 public class Bullet : MonoBehaviour
@@ -28,6 +29,7 @@ public class BulletBaker : Baker<Bullet>
 			Damage = authoring.Damage,
 			ExplosionRadius = authoring.ExplosionRadius,
 		});
+		
 	}
 }
 
@@ -69,6 +71,7 @@ public readonly partial struct BulletAspect : IAspect
 	{
 		return _moveTag.ValueRO.Value;
 	}
+
 }
 
 
@@ -132,7 +135,7 @@ public partial struct BulletMoveJob : IJobEntity
 			ECBDestroy.DestroyEntity(sortKey, bullet.Entity);
 			return;
 		}
-		
+
 		var cast = new RaycastInput()
 		{
 			Start = startPos,
@@ -144,7 +147,7 @@ public partial struct BulletMoveJob : IJobEntity
 		{
 			if (bullet.HasExplosion())
 			{
-				
+
 			}
 			else
 			{
@@ -152,8 +155,24 @@ public partial struct BulletMoveJob : IJobEntity
 				ECBDamage.AppendToBuffer(sortKey, hit.Entity, damage);
 			}
 
+			var hitEff = ECBDestroy.CreateEntity(sortKey);
+			ECBDestroy.SetComponent(sortKey, hitEff, new LocalTransform()
+			{
+				Position = hit.Position,
+				Rotation = quaternion.identity,
+				Scale = 1,
+			});
+			ECBDestroy.SetComponent(sortKey, hitEff, new BulletHitEffect()
+			{
+			});
 			ECBDestroy.DestroyEntity(sortKey, bullet.Entity);
 		}
-            
+
 	}
+	
+	public struct BulletHitEffect : IComponentData
+	{
+		
+	}
+
 }

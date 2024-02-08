@@ -155,16 +155,16 @@ public partial struct BulletMoveJob : IJobEntity
 				ECBDamage.AppendToBuffer(sortKey, hit.Entity, damage);
 			}
 
-			var hitEff = ECBDestroy.CreateEntity(sortKey);
-			ECBDestroy.SetComponent(sortKey, hitEff, new LocalTransform()
-			{
-				Position = hit.Position,
-				Rotation = quaternion.identity,
-				Scale = 1,
-			});
-			ECBDestroy.SetComponent(sortKey, hitEff, new BulletHitEffect()
-			{
-			});
+			// var hitEff = ECBDestroy.CreateEntity(sortKey);
+			// ECBDestroy.SetComponent(sortKey, hitEff, new LocalTransform()
+			// {
+			// 	Position = hit.Position,
+			// 	Rotation = quaternion.identity,
+			// 	Scale = 1,
+			// });
+			// ECBDestroy.SetComponent(sortKey, hitEff, new BulletHitEffect()
+			// {
+			// });
 			ECBDestroy.DestroyEntity(sortKey, bullet.Entity);
 		}
 

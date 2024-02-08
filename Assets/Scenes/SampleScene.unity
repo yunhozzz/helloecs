@@ -630,6 +630,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HealthSlider: {fileID: 1430409805}
+  hitPrefab: {fileID: 0}
 --- !u!114 &765316635
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -725,7 +726,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6851d9e5a9d9490ea021a50dc2025e28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  testEffectPrefab: {fileID: 100000, guid: 2f9e7030759a647e5b7ec0b46dd414f0, type: 3}
+  testEffectPrefab: {fileID: 100000, guid: e41a1ff11fe7f43e3bb0a215c7cd3d54, type: 3}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0

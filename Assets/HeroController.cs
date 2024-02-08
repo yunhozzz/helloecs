@@ -9,7 +9,8 @@ namespace DefaultNamespace
 		public void Update()
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			var hero = entityManager.CreateEntityQuery(typeof(HeroTag)).GetSingletonEntity();
+			if (!entityManager.CreateEntityQuery(typeof(HeroTag)).TryGetSingletonEntity<HeroTag>(out var hero))
+				return;
 			var heroInput = entityManager.GetComponentData<HeroInput>(hero);
 			if (Input.GetKey(KeyCode.A))
 				heroInput.MoveX = -1;

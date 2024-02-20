@@ -20,6 +20,7 @@ public class EnemyBuilder : Baker<Enemy>
         AddComponent<MovingTag>(entity);
         AddComponent(entity, new EnemyAttack { Value = authoring.attack });
         AddComponent(entity, new EnemySpeed { Value = authoring.speed });
+        AddComponent(entity, new EnemyKnockBack() { dist = 0 });
         AddComponent(entity, new Health { Value = authoring.health, Max = authoring.health });
         AddBuffer<DamageBufferElement>(entity);
     }
@@ -35,6 +36,11 @@ public struct EnemyAttack : IComponentData
     public int Value;
 }
 
+public struct EnemyKnockBack : IComponentData
+{
+    public float dist;
+}
+
 public struct EnemyTag : IComponentData
 {
 }
@@ -45,6 +51,7 @@ public readonly partial struct EnemyMoveAspect : IAspect
     public readonly Entity Entity;
 
     private readonly RefRW<LocalTransform> _transform;
+    private readonly RefRW<EnemyKnockBack> _knockBack;
     private readonly RefRO<EnemySpeed> _speed;
     private readonly RefRO<EnemyAttack> _attack;
     private readonly RefRO<MovingTag> _moveTag;
@@ -64,6 +71,15 @@ public readonly partial struct EnemyMoveAspect : IAspect
     public bool IsPassedGoalLine(float goalLineZ)
     {
         return _transform.ValueRW.Position.z < goalLineZ;
+    }
+
+    public void KnockBack(float deltaTime, float3 moveDir)
+    {
+        if (_moveTag.ValueRO.Value == false)
+            return;
+        
+        _transform.ValueRW.Position += -moveDir * _knockBack.ValueRW.dist;
+        _knockBack.ValueRW.dist = 0;
     }
 }
 
@@ -112,6 +128,7 @@ public partial struct EnemyMoveJob : IJobEntity
     [BurstCompile]
     private void Execute(EnemyMoveAspect enemy, [EntityIndexInQuery] int sortKey)
     {
+        enemy.KnockBack(DeltaTime, MoveDir);
         enemy.Move(DeltaTime, MoveDir);
         
         if (enemy.IsPassedGoalLine(GoalLineZ))

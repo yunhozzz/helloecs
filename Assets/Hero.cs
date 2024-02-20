@@ -115,7 +115,9 @@ public partial struct HeroMoveSystem : ISystem
 {
     public void OnUpdate(ref SystemState state)
     {
-        var board = SystemAPI.GetSingleton<BoardData>();
+        if (!SystemAPI.TryGetSingleton<BoardData>(out var board))
+            return;
+            
         var deltaTime = SystemAPI.Time.DeltaTime;
         foreach (var hero in SystemAPI.Query<HeroAspect>())
         {

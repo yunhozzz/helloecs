@@ -68,7 +68,9 @@ public partial struct EnemySpawnerSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {   
         var deltaTime = SystemAPI.Time.DeltaTime;
-        var board = SystemAPI.GetSingleton<BoardData>();
+        if (!SystemAPI.TryGetSingleton<BoardData>(out var board))
+            return;
+        
         foreach (var spawner in SystemAPI.Query<EnemySpawnerAspect>())
         {
             spawner.UpdateSpawn(deltaTime, state, board);

@@ -7,6 +7,6 @@ public class HitEffectHelper : MonoBehaviour
 
     void Start()
     {
-        World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<HitEffectSystem>().Init(particles);
+        World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<DamageSystem>().Init(particles);
     }
 }

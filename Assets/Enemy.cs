@@ -137,7 +137,8 @@ public partial struct EnemyMoveJob : IJobEntity
             
             var damage = new DamageBufferElement
             {
-                Value = enemy.GetDamage()
+                AttackPower = enemy.GetDamage(),
+                KnockBack = 0,
             };
             ECBDamage.AppendToBuffer(sortKey, heroEntity, damage);
         }
@@ -147,5 +148,6 @@ public partial struct EnemyMoveJob : IJobEntity
 
 public struct DamageBufferElement : IBufferElementData
 {
-    public int Value;
+    public int AttackPower;
+    public float KnockBack;
 }

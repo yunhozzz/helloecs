@@ -96,6 +96,7 @@ public readonly partial struct HeroAspect : IAspect
         {
             Speed = 10f,
             Damage = 20f,
+            KnockBack = 1f,
             ExplosionRadius = 0f,
         });
     }

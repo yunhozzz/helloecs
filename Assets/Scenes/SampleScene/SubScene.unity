@@ -154,7 +154,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EnemyPrefab: {fileID: 6203167572372896412, guid: 230e21dca87e5a44da91d01dd7f74ec1,
     type: 3}
-  SpawnInterval: 2
+  SpawnInterval: 0.5
 --- !u!4 &66546553
 Transform:
   m_ObjectHideFlags: 0
@@ -202,9 +202,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Health: 100
-  Speed: 10
+  Speed: 20
   Attack: 0
-  ShootInterval: 0.1
+  ShootInterval: 0.05
   BulletPrefab: {fileID: 6201559236152090789, guid: df7f685762a3b7f438149c6d712e1155,
     type: 3}
 --- !u!23 &952305848

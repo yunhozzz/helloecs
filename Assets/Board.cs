@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace DefaultNamespace
@@ -31,5 +32,6 @@ namespace DefaultNamespace
 		
 		public float NearLine;
 		public float FarLine;
+		public float3 EnemyMoveDir => new float3(0, 0, -1);
 	}
 }

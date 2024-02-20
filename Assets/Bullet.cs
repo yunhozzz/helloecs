@@ -13,6 +13,7 @@ public class Bullet : MonoBehaviour
 {
 	public float Speed = 10f;
 	public float Damage = 10f;
+	public float KnockBack = 1f;
 	public float ExplosionRadius = 0f;
 	public GameObject HitPrefab;
 }
@@ -27,6 +28,7 @@ public class BulletBaker : Baker<Bullet>
 		{
 			Speed = authoring.Speed,
 			Damage = authoring.Damage,
+			KnockBack = authoring.KnockBack,
 			ExplosionRadius = authoring.ExplosionRadius,
 		});
 		
@@ -37,6 +39,7 @@ public struct BulletComponent : IComponentData
 {
 	public float Speed;
 	public float Damage;
+	public float KnockBack;
 	public float ExplosionRadius;
 }
 
@@ -60,6 +63,11 @@ public readonly partial struct BulletAspect : IAspect
 	public int GetDamage()
 	{
 		return (int)_bullet.ValueRO.Damage;
+	}
+	
+	public float GetKnockBack()
+	{
+        return _bullet.ValueRO.KnockBack;
 	}
 
 	public bool HasExplosion()
@@ -151,7 +159,11 @@ public partial struct BulletMoveJob : IJobEntity
 			}
 			else
 			{
-				var damage = new DamageBufferElement { Value = bullet.GetDamage() };
+				var damage = new DamageBufferElement
+				{
+					AttackPower = bullet.GetDamage(),
+					KnockBack = bullet.GetKnockBack(),
+				};
 				ECBDamage.AppendToBuffer(sortKey, hit.Entity, damage);
 			}
 
